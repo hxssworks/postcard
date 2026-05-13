@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>予心先行 · Postcard</title>
+<title>予心先行 · 米洛斯岛</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,700&family=DM+Sans:wght@300;400;500&family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,6 +52,26 @@ body {
 .action-row { display: flex; justify-content: flex-end; gap: 14px; margin-top: 16px; }
 .action-btn { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--muted); transition: color 0.2s, transform 0.15s; padding: 0; line-height: 1; }
 .action-btn:hover { color: var(--gold); transform: scale(1.15); }
+
+/* 音频开关 */
+.sound-btn {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 0.5px solid #c8b89a;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  z-index: 10;
+  padding: 0;
+}
+.sound-btn:hover { border-color: var(--gold); transform: scale(1.1); }
+.sound-btn:hover svg { stroke: var(--gold); }
+.sound-btn.playing svg { stroke: var(--gold); }
+.sound-btn svg { stroke: var(--muted); transition: stroke 0.2s; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
@@ -59,7 +79,7 @@ body {
 
 <header class="masthead">
   <p class="masthead-eyebrow">E &amp; M</p>
-  <h1 class="masthead-title">予心先行<br><em>Postcards from Beyond</em></h1>
+  <h1 class="masthead-title"><em>Postcards from Beyond</em></h1>
   <div class="masthead-rule"></div>
 </header>
 
@@ -78,7 +98,7 @@ body {
     <div class="card-body">
       <p class="story-label">Today's Story</p>
       <p class="story-text">
-        这里的岩石是白色的，白得不像地球上的东西。几百万年前的火山把熔岩推上来，海风和海浪再用几百万年把它磨成这个样子——<em>圆润、苍白、沉默</em>，像月球表面被人搬来晒太阳。萨拉基尼科海滩没有沙，没有树，没有遮阳伞，只有岩石和爱琴海那种不讲道理的蓝。据说维纳斯雕像就在这座岛上被挖出来的，1820年，一个农民挖地时挖到了她。也许她在地下待了太久，出来之后两只手臂都找不到了，但没有人在乎——她本来就不需要做什么，只需要存在就够了。
+        这里的岩石是白色的，白得不像地球上的东西。几百万年前的火山把熔岩推上来，造出了这片让人想立刻脱鞋踩上去的<em>月球海滩</em>。萨拉基尼科的海是那种一眼就认出来的蓝，钻进去，睁开眼，能看见自己的影子落在岩石上。据说维纳斯就在这座岛上被挖出来的，1820年，一个村民挖地时挖到了她。美这件事，在米洛斯从来不需要特意去找，它就长在这里。
       </p>
       <div class="tags">
         <span class="tag">#米洛斯岛</span>
@@ -90,7 +110,7 @@ body {
     </div>
     <div class="card-footer">
       <div class="footer-credit">
-        <p>📷 <strong>@mitty</strong></p>
+        <p>📷 <strong>@DerekThornton</strong></p>
         <p style="margin-top:2px;font-size:9.5px">2026年5月13日</p>
       </div>
       <div class="footer-brand">
@@ -106,11 +126,109 @@ body {
   </div>
 </div>
 
+<!-- 音频 -->
+<audio id="bgAudio" loop>
+  <source src="assets/ocean-waves.wav" type="audio/wav">
+</audio>
+<button class="sound-btn" id="soundBtn" onclick="toggleSound()" title="海浪声">
+  <svg id="soundIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+    <line id="muteX1" x1="23" y1="9" x2="17" y2="15"></line>
+    <line id="muteX2" x1="17" y1="9" x2="23" y2="15"></line>
+    <path id="wave1" d="M14.5 9a5 5 0 0 1 0 6" style="display:none"></path>
+    <path id="wave2" d="M17.5 6.5a9 9 0 0 1 0 11" style="display:none"></path>
+    <path id="wave3" d="M20.5 4a13 13 0 0 1 0 16" style="display:none"></path>
+  </svg>
+</button>
+
 <script>
-function toggleLike() {
+function toggleSound() {
+  var audio = document.getElementById('bgAudio');
+  var btn   = document.getElementById('soundBtn');
+  var x1    = document.getElementById('muteX1');
+  var x2    = document.getElementById('muteX2');
+  var w1    = document.getElementById('wave1');
+  var w2    = document.getElementById('wave2');
+  var w3    = document.getElementById('wave3');
+  if (audio.paused) {
+    audio.volume = 0.35;
+    audio.play();
+    btn.classList.add('playing');
+    x1.style.display = 'none';
+    x2.style.display = 'none';
+    w1.style.display = '';
+    w2.style.display = '';
+    w3.style.display = '';
+  } else {
+    audio.pause();
+    btn.classList.remove('playing');
+    x1.style.display = '';
+    x2.style.display = '';
+    w1.style.display = 'none';
+    w2.style.display = 'none';
+    w3.style.display = 'none';
+  }
+}
+
+/* ── Supabase 点赞（按日计数）── */
+var SUPABASE_URL = 'https://xltjlefswarblyfpqzds.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdGpsZWZzd2FyYmx5ZnBxemRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2Njg1MDgsImV4cCI6MjA5NDI0NDUwOH0.qrEIK0Eua7sKyKDoDSUKrXNG0Kgu82etrVwLKZnzQIQ';
+var CARD_ID  = 'milos-001';
+var TODAY    = new Date().toISOString().slice(0, 10); /* YYYY-MM-DD */
+var liked    = false;
+var likeCount = 0;
+
+/* 本设备今天是否已点过 */
+var storageKey = 'liked_' + CARD_ID + '_' + TODAY;
+if (localStorage.getItem(storageKey)) {
+  liked = true;
+}
+
+/* 页面加载时获取今天的点赞数 */
+window.addEventListener('load', function() {
+  fetch(SUPABASE_URL + '/rest/v1/likes?card_id=eq.' + CARD_ID + '&date=eq.' + TODAY + '&select=count', {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (data && data[0]) likeCount = data[0].count;
+    updateLikeUI();
+  })
+  .catch(function(){});
+});
+
+function updateLikeUI() {
   var btn = document.getElementById('likeBtn');
-  if (btn.textContent === '♡') { btn.textContent = '♥'; btn.style.color = '#c0392b'; }
-  else { btn.textContent = '♡'; btn.style.color = ''; }
+  btn.innerHTML = (liked ? '♥' : '♡') + (likeCount > 0 ? '<span style="font-size:9px;margin-left:3px;font-family:DM Sans,sans-serif;vertical-align:middle">' + likeCount + '</span>' : '');
+  btn.style.color = liked ? '#c0392b' : '';
+}
+
+function toggleLike() {
+  /* 本设备今天已点过则不重复计数 */
+  var alreadyLiked = !!localStorage.getItem(storageKey);
+  liked = !liked;
+
+  if (liked && !alreadyLiked) {
+    likeCount += 1;
+    localStorage.setItem(storageKey, '1');
+  } else if (!liked && alreadyLiked) {
+    likeCount = Math.max(0, likeCount - 1);
+    localStorage.removeItem(storageKey);
+  }
+
+  updateLikeUI();
+
+  /* upsert：card_id + date 唯一，count 更新 */
+  fetch(SUPABASE_URL + '/rest/v1/likes', {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify({ card_id: CARD_ID, date: TODAY, count: likeCount })
+  }).catch(function(){});
 }
 
 function downloadCard() {
@@ -191,11 +309,11 @@ function doCanvas(photo) {
   c.textAlign='center'; c.fillText(dayStr,CX+CW-107,CY+PAD+36); c.textAlign='left';
 
   c.fillStyle='rgba(232,196,122,0.9)'; c.font='500 22px '+FN;
-  c.fillText(country.toUpperCase(),CX+PAD,CY+PH-140);
+  c.fillText(country.toUpperCase(),CX+PAD,CY+PH-180);
   c.shadowColor='rgba(0,0,0,0.5)'; c.shadowBlur=18;
   c.fillStyle='#fff'; c.font='bold 88px '+FD;
-  c.fillText(placeLines[0],CX+PAD,CY+PH-56);
-  if(placeLines[1]){c.font='italic 700 64px '+FD;c.fillStyle='rgba(255,255,255,0.88)';c.fillText(placeLines[1],CX+PAD+4,CY+PH+4);}
+  c.fillText(placeLines[0],CX+PAD,CY+PH-90);
+  if(placeLines[1]){c.font='italic 700 64px '+FD;c.fillStyle='rgba(255,255,255,0.88)';c.fillText(placeLines[1],CX+PAD+4,CY+PH-18);}
   c.shadowBlur=0;
 
   var ty=CY+PH+54;
@@ -220,7 +338,7 @@ function doCanvas(photo) {
   c.fillStyle=PAPER2; c.fillRect(CX,fy,CW,cardBot-fy);
   c.fillStyle=BORDER; c.fillRect(CX,fy,CW,1); ty=fy+44;
   c.fillStyle=MUTED; c.font='400 25px '+FN;
-  c.fillText('📷  @mitty',CX+36,ty);
+  c.fillText('📷  @DerekThornton',CX+36,ty);
   c.font='300 21px '+FN; c.fillStyle='#a0978a';
   c.fillText(date,CX+36,ty+38);
   c.textAlign='right';
@@ -251,6 +369,134 @@ function rrPath(c,x,y,w,h,r){
   c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);c.closePath();
 }
 function rrFill(c,x,y,w,h,r,fill){c.beginPath();rrPath(c,x,y,w,h,r);c.fillStyle=fill;c.fill();}
+
+/* ── 鼠标视差 ── */
+var cardEl = document.querySelector('.card-wrapper');
+
+/* 等 fadeUp 动画结束后再绑定，避免 animation 覆盖 JS transform */
+cardEl.addEventListener('animationend', function() {
+  cardEl.style.animation = 'none';
+  cardEl.style.opacity   = '1';
+  cardEl.style.transform = 'none';
+  bindParallax();
+}, { once: true });
+
+/* 若动画已经结束（刷新页面后），直接绑定 */
+setTimeout(function() {
+  if (!cardEl._parallaxBound) bindParallax();
+}, 900);
+
+function bindParallax() {
+  if (cardEl._parallaxBound) return;
+  cardEl._parallaxBound = true;
+
+  cardEl.addEventListener('mousemove', function(e) {
+    var rect = cardEl.getBoundingClientRect();
+    var dx = ((e.clientX - rect.left) / rect.width  - 0.5) * 2;
+    var dy = ((e.clientY - rect.top)  / rect.height - 0.5) * 2;
+    var rx =  dy * 0.33;
+    var ry = -dx * 0.15;
+    cardEl.style.transform = 'perspective(900px) rotateX('+rx+'deg) rotateY('+ry+'deg) scale(1.008)';
+    cardEl.style.transition = 'transform 0.08s ease-out';
+    var px = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1);
+    var py = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1);
+    cardEl.querySelector('.card').style.setProperty('--gx', px + '%');
+    cardEl.querySelector('.card').style.setProperty('--gy', py + '%');
+  });
+
+  cardEl.addEventListener('mouseleave', function() {
+    cardEl.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(1)';
+    cardEl.style.transition = 'transform 0.6s ease-out';
+  });
+}
+
+/* 光泽层 */
+var gs = document.createElement('style');
+gs.textContent = '.card { --gx:50%; --gy:40%; } .card::after { content:""; position:absolute; inset:0; pointer-events:none; background: radial-gradient(circle at var(--gx) var(--gy), rgba(255,248,220,0.10) 0%, transparent 55%); transition: background 0.06s; }';
+document.head.appendChild(gs);
+
+/* ── 萤火虫（移植自 Yossii 粒子系统，暖金×沙色） ── */
+var fc = document.createElement('canvas');
+fc.id = 'particles-canvas';
+fc.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+document.body.insertBefore(fc, document.body.firstChild);
+
+var pctx = fc.getContext('2d');
+var PW, PH, particles = [];
+var mousePos = { x: -999, y: -999 };
+
+document.addEventListener('mousemove', function(e) { mousePos.x = e.clientX; mousePos.y = e.clientY; });
+
+function presizeCanvas() {
+  PW = fc.width  = window.innerWidth;
+  PH = fc.height = window.innerHeight;
+}
+window.addEventListener('resize', presizeCanvas);
+presizeCanvas();
+
+function Particle(initial) {
+  this.reset(initial);
+}
+Particle.prototype.reset = function(initial) {
+  this.x       = Math.random() * PW;
+  this.y       = initial ? Math.random() * PH : PH + 10;
+  this.r       = Math.random() * 1.8 + 0.4;
+  this.vx      = (Math.random() - 0.5) * 0.25;
+  this.vy      = -(Math.random() * 0.5 + 0.15);
+  this.alpha   = 0;
+  this.maxAlpha = Math.random() * 0.55 + 0.15;
+  this.life    = 0;
+  this.maxLife = Math.random() * 300 + 200;
+  /* 更饱和的金色系 */
+  this.color   = Math.random() > 0.5 ? '218,162,48' : '245,208,100';
+};
+Particle.prototype.update = function() {
+  /* 鼠标靠近时散开 */
+  var mdx = this.x - mousePos.x;
+  var mdy = this.y - mousePos.y;
+  var dist = Math.sqrt(mdx * mdx + mdy * mdy);
+  if (dist < 100 && dist > 0) {
+    var force = (100 - dist) / 100;
+    this.x += (mdx / dist) * force * 2.5;
+    this.y += (mdy / dist) * force * 2.5;
+  }
+  this.x += this.vx + Math.sin(this.life * 0.04) * 0.3;
+  this.y += this.vy;
+  this.life++;
+  var t = this.life / this.maxLife;
+  this.alpha = t < 0.2  ? (t / 0.2) * this.maxAlpha
+             : t > 0.75 ? ((1 - t) / 0.25) * this.maxAlpha
+             : this.maxAlpha;
+  if (this.life >= this.maxLife || this.y < -10) this.reset(false);
+};
+Particle.prototype.draw = function() {
+  /* 外层光晕 */
+  var grd = pctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r * 5);
+  grd.addColorStop(0,   'rgba('+this.color+','+(this.alpha * 0.8)+')');
+  grd.addColorStop(0.5, 'rgba('+this.color+','+(this.alpha * 0.2)+')');
+  grd.addColorStop(1,   'rgba('+this.color+',0)');
+  pctx.beginPath();
+  pctx.arc(this.x, this.y, this.r * 5, 0, Math.PI * 2);
+  pctx.fillStyle = grd;
+  pctx.fill();
+  /* 核心亮点 */
+  pctx.beginPath();
+  pctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+  pctx.fillStyle = 'rgba('+this.color+','+this.alpha+')';
+  pctx.fill();
+};
+
+for (var pi = 0; pi < 40; pi++) particles.push(new Particle(true));
+
+function animateParticles() {
+  pctx.clearRect(0, 0, PW, PH);
+  for (var i = 0; i < particles.length; i++) {
+    particles[i].update();
+    particles[i].draw();
+  }
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
 </script>
 </body>
 </html>

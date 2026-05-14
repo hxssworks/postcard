@@ -51,11 +51,11 @@ body {
 .brand-cn { font-family: 'Playfair Display', serif; font-size: 14px; font-style: italic; font-weight: 700; color: var(--gold); }
 .brand-en { font-size: 9.5px; color: var(--muted); margin-top: 2px; letter-spacing: 0.06em; }
 .action-row { display: flex; justify-content: flex-end; gap: 14px; margin-top: 16px; }
-.action-btn { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--muted); transition: color 0.2s, transform 0.15s; padding: 0; line-height: 1; }
+.action-btn { background: none; border: none; cursor: pointer; -webkit-appearance: none; appearance: none; font-size: 18px; color: var(--muted); transition: color 0.2s, transform 0.15s; padding: 0; line-height: 1; }
 .action-btn:hover { color: var(--gold); transform: scale(1.15); }
 
 /* 音频开关 */
-.sound-btn {
+.sound-btn { -webkit-appearance: none; appearance: none;
 position: fixed; bottom: 22px; right: 22px;
 width: 31px; height: 31px; border-radius: 50%;
 background: var(–paper); border: 0.5px solid #c8b89a;
